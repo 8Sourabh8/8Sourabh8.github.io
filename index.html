@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sourabh Joshi</title>
+<meta name="description" content="Sourabh Joshi: RTL design and design verification engineer. Verilog, SystemVerilog, UVM, SVA, FPGA and mmWave projects, research and writing.">
+<meta property="og:title" content="Sourabh Joshi | RTL Design & Verification">
+<meta property="og:description" content="Verilog RTL, SystemVerilog/UVM testbenches and assertions. Projects, research and writing.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://8sourabh8.github.io/">
+<meta property="og:image" content="https://8sourabh8.github.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://8sourabh8.github.io/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f1a2b'/%3E%3Ctext x='32' y='41' font-family='monospace' font-size='26' font-weight='700' fill='%23f6f7f9' text-anchor='middle'%3ESJ%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a hardware datasheet. Sticky bench-bar nav, hero split into
+   statement + live logic-analyzer panel, then spec-sheet sections on a faint PCB grid. */
+:root {
+  --paper: #f6f7f9;      /* cool white */
+  --panel: #ffffff;
+  --ink: #0f1a2b;        /* navy ink */
+  --muted: #5b6678;
+  --rule: #e0e4ea;
+  --mask: #1d4f91;       /* primary accent: deep blue */
+  --copper: #a8741f;     /* secondary: brass, used sparingly */
+  --pass: #1f7a52;
+  --mask-soft: #eaf0f8;
+  --grid: transparent;
+
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --s-xs: .78rem; --s-sm: .9rem; --s-md: 1.02rem; --s-lg: 1.3rem; --s-xl: 1.9rem; --s-xxl: clamp(2.6rem, 6.4vw, 4.6rem);
+  --radius: 6px;
+  --wrap: 1120px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0c121d; --panel: #121a28; --ink: #e5eaf1; --muted: #98a3b5; --rule: #232e42;
+    --mask: #82aae6; --copper: #d4a85c; --pass: #5cc092; --mask-soft: #18233a; --grid: transparent;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0c121d; --panel: #121a28; --ink: #e5eaf1; --muted: #98a3b5; --rule: #232e42;
+  --mask: #82aae6; --copper: #d4a85c; --pass: #5cc092; --mask-soft: #18233a; --grid: transparent;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--s-md);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+a { color: var(--mask); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; border-radius: 3px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.05; }
+p { margin: 0; }
+.wrap {
+  max-width: var(--wrap); margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.mono { font-family: var(--f-mono); }
+.label {
+  font-family: var(--f-mono); font-size: var(--s-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ---------- nav ---------- */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+.nav .wrap { display: flex; align-items: center; gap: 24px; padding-block: 12px; }
+.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-family: var(--f-display); font-weight: 750; font-variation-settings: "wdth" 100; letter-spacing: .01em; }
+.chip-ic {
+  width: 30px; height: 30px; border: 0; border-radius: 6px; display: grid; place-items: center;
+  font-family: var(--f-mono); font-size: .7rem; font-weight: 600; position: relative; background: var(--ink); color: var(--paper);
+}
+
+.nav ul { display: flex; gap: 22px; list-style: none; margin: 0 0 0 auto; padding: 0; }
+.nav ul a { color: var(--muted); text-decoration: none; font-size: var(--s-sm); position: relative; }
+.nav ul a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: var(--mask); transform: scaleX(0); transform-origin: left; transition: transform .25s ease; }
+.nav ul a:hover, .nav ul a.active { color: var(--ink); }
+.nav ul a:hover::after, .nav ul a.active::after { transform: scaleX(1); }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--radius);
+  font-size: var(--s-sm); font-weight: 600; text-decoration: none; border: 1.5px solid var(--ink); color: var(--ink);
+  background: transparent; cursor: pointer; font-family: var(--f-body); transition: transform .15s ease, background .2s ease, color .2s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn.solid { background: var(--mask); border-color: var(--mask); color: var(--panel); }
+.btn.solid:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.nav .btn { padding: 7px 13px; }
+@media (max-width: 760px) { .nav ul { display: none; } .nav .btn { margin-left: auto; } }
+
+/* ---------- hero ---------- */
+.hero { padding-block: clamp(40px, 7vw, 84px) 36px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(28px, 4vw, 56px); align-items: center; }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); } }
+.hero h1 {
+  font-size: clamp(2.4rem, 5.6vw, 3.9rem); font-weight: 700; font-variation-settings: "wdth" 100; letter-spacing: -.02em; margin-top: 14px;
+}
+.hero h1 span { display: block; font-family: var(--f-body); font-size: .4em; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 12px; }
+.hero .lede { font-size: 1.15rem; color: var(--ink); margin-top: 18px; max-width: 34rem; }
+.hero .status { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-size: var(--s-sm); color: var(--muted); }
+.led { width: 9px; height: 9px; border-radius: 50%; background: var(--pass);  flex: none; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--pass) 6%, transparent); } }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.load-in > * { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.load-in > *:nth-child(2) { animation-delay: .06s; } .load-in > *:nth-child(3) { animation-delay: .12s; }
+.load-in > *:nth-child(4) { animation-delay: .18s; } .load-in > *:nth-child(5) { animation-delay: .24s; }
+@keyframes rise { from { transform: translateY(14px); } to { transform: none; } }
+
+/* analyzer panel */
+.scope {
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 0 var(--rule), 0 18px 40px -24px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+.scope-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+.scope-head .dots { display: flex; gap: 6px; }
+.scope-head .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--rule); display: block; }
+.scope-head .label { text-transform: none; letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.scope canvas { display: block; width: 100%; height: 232px; cursor: crosshair; }
+.console {
+  font-family: var(--f-mono); font-size: .74rem; line-height: 1.7; padding: 10px 14px 12px; border-top: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--mask-soft) 55%, var(--panel)); color: var(--muted); overflow-x: auto; white-space: pre;
+}
+.console b { color: var(--pass); font-weight: 600; }
+.console em { color: var(--copper); font-style: normal; }
+.caret { display: inline-block; width: 7px; height: 12px; background: var(--muted); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.scope-cap { font-size: var(--s-xs); color: var(--muted); margin-top: 8px; font-family: var(--f-mono); }
+
+/* readouts */
+.readouts { border-block: 1px solid var(--rule); background: var(--panel); }
+.readouts .wrap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ro { padding: 18px 18px 18px 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ro + .ro { padding-left: 18px; border-left: 1px solid var(--rule); }
+.ro strong { font-family: var(--f-display); font-variation-settings: "wdth" 100; font-weight: 750; font-size: 1.45rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ro span { font-size: var(--s-sm); color: var(--muted); }
+@media (max-width: 820px) {
+  .readouts .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ro:nth-child(3) { padding-left: 0; border-left: 0; }
+  .ro:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+
+/* ---------- sections ---------- */
+section.block { padding-block: clamp(56px, 8vw, 96px) 0; scroll-margin-top: 70px; }
+.sec-head { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 24px; align-items: end; margin-bottom: 34px; }
+.sec-head h2 { font-size: 1.75rem; font-weight: 700; font-variation-settings: "wdth" 100; }
+.sec-head p { color: var(--muted); max-width: 40rem; }
+@media (max-width: 760px) { .sec-head { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+.lift { transform: translateY(18px); transition: transform .8s cubic-bezier(.2,.7,.2,1); }
+.lift.seen { transform: none; }
+@media (prefers-reduced-motion: reduce) { .lift { transform: none; transition: none; } .load-in > * { animation: none; } .led, .caret { animation: none; } }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-family: var(--f-body); font-size: .76rem; font-weight: 500; padding: 2px 9px; border-radius: 999px; background: var(--mask-soft); color: var(--mask); white-space: nowrap; }
+
+/* featured project */
+.feature {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0;
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden;
+}
+@media (max-width: 900px) { .feature { grid-template-columns: minmax(0, 1fr); } }
+.feature .body { padding: clamp(20px, 3vw, 34px); display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.feature h3 { font-size: 1.55rem; font-weight: 760; font-variation-settings: "wdth" 100; }
+.feature ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--ink); }
+.feature ul li::marker { color: var(--muted); }
+.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.metric { border: 1px solid var(--rule); border-radius: var(--radius); padding: 10px 12px; }
+.metric strong { display: block; font-family: var(--f-mono); font-size: 1.05rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.metric span { font-size: var(--s-xs); color: var(--muted); }
+.feature .diagram { background: color-mix(in srgb, var(--mask-soft) 60%, var(--panel)); border-left: 1px solid var(--rule); padding: clamp(18px, 3vw, 30px); display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
+@media (max-width: 900px) { .feature .diagram { border-left: 0; border-top: 1px solid var(--rule); } }
+.diagram svg { width: 100%; height: auto; max-width: 100%; }
+.diagram svg text { font-family: var(--f-mono); }
+.flow { stroke-dasharray: 5 6; animation: flow 1.6s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -22; } }
+@media (prefers-reduced-motion: reduce) { .flow { animation: none; } }
+
+/* project grid */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.card {
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 22px 22px 18px;
+  display: flex; flex-direction: column; gap: 12px; min-width: 0; position: relative; overflow: hidden;
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.card::before {
+  content: none;
+}
+.card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--mask) 40%, var(--rule)); box-shadow: 0 16px 34px -24px color-mix(in srgb, var(--ink) 45%, transparent); }
+.card:hover::before { transform: scaleX(1); }
+.card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.card h3 { font-size: 1.18rem; font-weight: 730; font-variation-settings: "wdth" 100; }
+.card .kind { font-family: var(--f-mono); font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.card p { color: var(--muted); font-size: .97rem; }
+.card ul { margin: 0; padding-left: 1.1em; font-size: .95rem; display: grid; gap: 4px; }
+.card ul li::marker { color: var(--muted); }
+.card .foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
+.meter { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; font-family: var(--f-mono); font-size: .74rem; color: var(--muted); }
+.meter .bar { height: 6px; border-radius: 3px; background: var(--mask-soft); overflow: hidden; }
+.meter .bar i { display: block; height: 100%; width: var(--v, 100%); background: var(--pass); border-radius: 3px; }
+.seen .meter .bar i { animation: fill 1.2s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes fill { from { width: 0; } }
+@media (prefers-reduced-motion: reduce) { .seen .meter .bar i { animation: none; } }
+.meter b { color: var(--ink); font-weight: 600; }
+.links { display: flex; flex-wrap: wrap; gap: 14px; font-size: var(--s-sm); }
+.links a { text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+
+/* rf spec card */
+.spec { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: clamp(20px, 3vw, 30px); margin-top: 18px; }
+@media (max-width: 760px) { .spec { grid-template-columns: minmax(0, 1fr); } }
+.spec table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.spec td { padding: 7px 0; border-bottom: 1px dashed var(--rule); vertical-align: top; }
+.spec td:first-child { color: var(--muted); font-family: var(--f-mono); font-size: .78rem; padding-right: 16px; white-space: nowrap; }
+.spec td:last-child { font-variant-numeric: tabular-nums; }
+.spec .txt { display: flex; flex-direction: column; gap: 12px; }
+.spec h3 { font-size: 1.25rem; font-weight: 740; font-variation-settings: "wdth" 100; }
+
+/* research */
+.research { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .research { grid-template-columns: minmax(0, 1fr); } }
+.paper { border-top: 3px solid var(--ink); padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.paper h3 { font-size: 1.15rem; font-weight: 730; font-variation-settings: "wdth" 100; line-height: 1.2; }
+.paper p { color: var(--muted); font-size: .97rem; }
+.paper .nums { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 4px; }
+.paper .nums div { display: flex; flex-direction: column; }
+.paper .nums strong { font-family: var(--f-mono); font-size: 1.1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.paper .nums span { font-size: var(--s-xs); color: var(--muted); }
+.talks { margin-top: 28px; display: grid; gap: 10px; }
+.talk { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.talk:first-child { border-top: 1px solid var(--rule); }
+.talk .when { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); }
+.talk .type { font-family: var(--f-mono); font-size: .72rem; color: var(--mask); text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+@media (max-width: 640px) { .talk { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+
+/* writing */
+.posts { display: grid; gap: 0; }
+.post-link {
+  display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; gap: 20px; align-items: baseline;
+  padding: 20px 0; border-bottom: 1px solid var(--rule); text-decoration: none; color: var(--ink); position: relative;
+}
+.post-link:first-child { border-top: 1px solid var(--rule); }
+.post-link .meta { font-family: var(--f-mono); font-size: .76rem; color: var(--muted); }
+.post-link h3 { font-size: 1.2rem; font-weight: 720; font-variation-settings: "wdth" 100; line-height: 1.25; transition: color .2s ease; }
+.post-link p { color: var(--muted); font-size: .95rem; margin-top: 4px; }
+.post-link .arrow { font-family: var(--f-mono); color: var(--muted); transition: transform .25s ease, color .2s ease; }
+.post-link:hover h3 { color: var(--mask); }
+.post-link:hover .arrow { transform: translateX(4px); color: var(--mask); }
+@media (max-width: 640px) { .post-link { grid-template-columns: minmax(0, 1fr); gap: 6px; } .post-link .arrow { display: none; } }
+
+/* timeline */
+.timeline { position: relative; display: grid; gap: 0; }
+.tl { display: grid; grid-template-columns: 170px 28px minmax(0, 1fr); gap: 0 14px; }
+.tl .when { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); padding-top: 3px; text-align: right; font-variant-numeric: tabular-nums; }
+.tl .node { position: relative; display: flex; justify-content: center; }
+.tl .node::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--rule); }
+.tl:first-child .node::before { top: 8px; }
+.tl:last-child .node::before { bottom: auto; height: 10px; }
+.tl .node i { position: relative; width: 12px; height: 12px; border-radius: 2px; background: var(--panel); border: 2px solid var(--mask); margin-top: 6px; transform: rotate(45deg); }
+.tl.now .node i { background: var(--mask); }
+.tl .what { padding-bottom: 26px; display: flex; flex-direction: column; gap: 2px; }
+.tl .what h3 { font-family: var(--f-body); font-size: 1.02rem; font-weight: 600; line-height: 1.35; }
+.tl .what p { color: var(--muted); font-size: .94rem; }
+@media (max-width: 640px) {
+  .tl { grid-template-columns: 20px minmax(0, 1fr); }
+  .tl .when { grid-column: 2; grid-row: 1; text-align: left; padding-top: 0; }
+  .tl .node { grid-column: 1; grid-row: 1 / span 2; }
+  .tl .what { grid-column: 2; }
+}
+
+/* skills */
+.skills { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 900px) { .skills { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .skills { grid-template-columns: minmax(0, 1fr); } }
+.skill { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.skill h3 { font-family: var(--f-mono); font-size: .76rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--mask); }
+.skill ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: .95rem; }
+.awards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+@media (max-width: 760px) { .awards { grid-template-columns: minmax(0, 1fr); } }
+.award { display: flex; gap: 12px; align-items: flex-start; padding: 16px 0; border-top: 1px solid var(--rule); }
+.award .glyph { font-family: var(--f-mono); font-size: .72rem; color: var(--panel); background: var(--mask); border-radius: 3px; padding: 2px 6px; white-space: nowrap; margin-top: 2px; }
+.award p { font-size: .95rem; }
+.award p span { display: block; color: var(--muted); font-size: .88rem; }
+
+/* contact */
+.contact { margin-top: clamp(56px, 8vw, 96px); background: var(--ink); color: var(--paper); }
+.contact .wrap { padding-block: clamp(44px, 6vw, 72px); display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: end; }
+@media (max-width: 820px) { .contact .wrap { grid-template-columns: minmax(0, 1fr); } }
+.contact h2 { font-size: clamp(1.8rem, 3.8vw, 2.6rem); font-weight: 700; font-variation-settings: "wdth" 100; }
+.contact p { color: color-mix(in srgb, var(--paper) 72%, var(--ink)); margin-top: 14px; max-width: 32rem; }
+.contact .rows { display: grid; gap: 10px; }
+.crow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--paper) 22%, var(--ink)); border-radius: var(--radius); min-width: 0; }
+.crow .k { font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: color-mix(in srgb, var(--paper) 60%, var(--ink)); }
+.crow .v { color: var(--paper); text-decoration: none; font-size: .95rem; overflow-wrap: anywhere; user-select: all; }
+.crow a.v:hover { text-decoration: underline; }
+.crow .left { display: flex; flex-direction: column; min-width: 0; }
+.copy { font-family: var(--f-mono); font-size: .72rem; background: transparent; color: var(--paper); border: 1px solid color-mix(in srgb, var(--paper) 35%, var(--ink)); border-radius: 4px; padding: 5px 9px; cursor: pointer; white-space: nowrap; }
+.copy:hover { background: color-mix(in srgb, var(--paper) 12%, var(--ink)); }
+footer { background: var(--ink); color: color-mix(in srgb, var(--paper) 55%, var(--ink)); font-family: var(--f-mono); font-size: .74rem; }
+footer .wrap { padding-block: 18px; border-top: 1px solid color-mix(in srgb, var(--paper) 14%, var(--ink)); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* ---------- article view ---------- */
+.article { padding-block: clamp(36px, 6vw, 72px) 80px; }
+.article .wrap { max-width: 760px; }
+.back { font-family: var(--f-mono); font-size: .8rem; text-decoration: none; color: var(--muted); display: inline-flex; gap: 8px; align-items: center; }
+.back:hover { color: var(--mask); }
+.article header { margin: 26px 0 30px; display: flex; flex-direction: column; gap: 14px; }
+.article h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; font-variation-settings: "wdth" 100; line-height: 1.08; }
+.article .dek { font-size: 1.15rem; color: var(--muted); }
+.prose { font-size: 1.06rem; line-height: 1.75; display: flex; flex-direction: column; gap: 1.05em; }
+.prose h2 { font-size: 1.35rem; font-weight: 740; font-variation-settings: "wdth" 100; margin-top: .9em; }
+.prose ul, .prose ol { margin: 0; padding-left: 1.2em; display: grid; gap: .35em; }
+.prose li::marker { color: var(--muted); }
+.prose code { font-family: var(--f-mono); font-size: .9em; background: var(--mask-soft); padding: 1px 5px; border-radius: 3px; }
+.prose pre { margin: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font-family: var(--f-mono); font-size: .84rem; line-height: 1.6; }
+.prose pre code { background: none; padding: 0; font-size: inherit; }
+.prose pre .kw { color: var(--mask); font-weight: 600; }
+.prose pre .cm { color: var(--muted); font-style: italic; }
+.prose table { border-collapse: collapse; width: 100%; font-size: .94rem; }
+.prose .tbl { overflow-x: auto; }
+.prose th, .prose td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--rule); }
+.prose th { font-family: var(--f-mono); font-size: .76rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.prose td { font-variant-numeric: tabular-nums; }
+.callout { border-left: 3px solid var(--copper); padding: 4px 0 4px 16px; color: var(--ink); }
+.next { margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* base reset (standalone) */
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<!-- ======================= HOME ======================= -->
+<div id="home">
+<nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="Sourabh Joshi, home"><span class="chip-ic">SJ</span>Sourabh Joshi</a>
+    <ul>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#research">Research</a></li>
+      <li><a href="#writing">Writing</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a class="btn resume-link" href="Sourabh_Joshi_Resume.pdf" target="_blank" rel="noopener">Résumé</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="load-in">
+      <div class="label">RTL design · Design verification · mmWave</div>
+      <h1>Sourabh Joshi<span>RTL Design &amp; Verification Engineer</span></h1>
+      <p class="lede">I design digital hardware in Verilog and prove it works with SystemVerilog, UVM and assertions. My work runs from packet routers and AMBA bridges to an FPGA beam controller for 28 GHz MIMO.</p>
+      <p class="status"><span class="led" aria-hidden="true"></span>M.Tech at NIT Karnataka, Surathkal · Open to design verification roles and internships</p>
+      <div class="cta">
+        <a class="btn solid" href="#work">See my work</a>
+        <a class="btn resume-link" href="Sourabh_Joshi_Resume.pdf" target="_blank" rel="noopener">Download résumé</a>
+        <a class="btn" href="https://github.com/8Sourabh8" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href="https://www.linkedin.com/in/sourabh-joshi-60a268208/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+
+    <div class="load-in">
+      <figure class="scope" style="margin:0">
+        <div class="scope-head">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="label">tb_router_top · router_dst1_test</span>
+          <span class="label" id="tread">t = 0 ns</span>
+        </div>
+        <canvas id="wave" aria-label="Animated waveform of a router testbench: clock, reset, packet valid, data bus, valid out, read enable and assertion markers"></canvas>
+        
+      </figure>
+      <p class="scope-cap">Router testbench waveform, illustrative. Hover to read simulation time.</p>
+    </div>
+  </div>
+</header>
+
+<div class="readouts">
+  <div class="wrap">
+    <div class="ro"><strong>100%</strong><span>functional coverage on 4 UVM / SystemVerilog testbenches</span></div>
+    <div class="ro"><strong>100 MHz</strong><span>timing met on Artix-7 for my RIS phase controller</span></div>
+    <div class="ro"><strong>2 first prizes</strong><span>Project Expo 2024 and Best Innovative Project, Maven Silicon</span></div>
+    <div class="ro"><strong>2 talks</strong><span>at international conferences, incl. EIHE-2023 at BARC</span></div>
+  </div>
+</div>
+
+<!-- WORK -->
+<section class="block" id="work">
+  <div class="wrap">
+    <div class="sec-head lift">
+      <div><div class="label">Work</div><h2>Selected projects</h2></div>
+      <p>RTL I wrote and testbenches I built to break it. The verification projects come from a year of hands-on training at Maven Silicon; the RIS controller is my own M.Tech design.</p>
+    </div>
+
+    <article class="feature lift">
+      <div class="body">
+        <div class="tags"><span class="tag">Verilog</span><span class="tag">Vivado</span><span class="tag">Artix-7</span><span class="tag">MATLAB</span><span class="tag">Oct 2026</span></div>
+        <h3>RTL phase controller for RIS-assisted mmWave MIMO</h3>
+        <p style="color:var(--muted)">At 28 GHz one building can block the signal. A Reconfigurable Intelligent Surface steers it around the obstacle, but only if every element gets the right phase in time. Papers assume those phases are simply set. I designed the hardware that sets them.</p>
+        <ul>
+          <li>Verilog datapath: codebook ROM, control FSM, serial shift register and output latch.</li>
+          <li>Verified in Vivado: 18 of 18 tests pass.</li>
+          <li>In MATLAB, reproduced 1-bit and 2-bit phase quantisation loss from an IEEE paper and raised coverage behind a building from 8.8% to 100%.</li>
+        </ul>
+        <div class="metrics">
+          <div class="metric"><strong>18 / 18</strong><span>tests passed</span></div>
+          <div class="metric"><strong>1.31 µs</strong><span>per beam update</span></div>
+          <div class="metric"><strong>157 LUT · 147 FF</strong><span>on Artix-7 at 100 MHz</span></div>
+          <div class="metric"><strong>~3×</strong><span>2×2 MIMO capacity gain</span></div>
+        </div>
+        <div class="links"><a href="#post-ris-controller">Read the write-up →</a></div>
+      </div>
+      <div class="diagram">
+        <span class="label">Datapath</span>
+        <svg viewBox="0 0 360 250" role="img" aria-label="Block diagram: codebook ROM feeds a control FSM, which drives a serial shift register, then a latch, which sets the RIS element phases">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--mask)"/></marker>
+          </defs>
+          <g fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5">
+            <rect x="12" y="20" width="140" height="50" rx="4"/>
+            <rect x="208" y="20" width="140" height="50" rx="4"/>
+            <rect x="208" y="110" width="140" height="50" rx="4"/>
+            <rect x="12" y="110" width="140" height="50" rx="4"/>
+          </g>
+          <g fill="var(--ink)" font-size="12" text-anchor="middle">
+            <text x="82" y="42" font-weight="600">Codebook ROM</text><text x="82" y="58" fill="var(--muted)" font-size="10">beam → phase bits</text>
+            <text x="278" y="42" font-weight="600">Control FSM</text><text x="278" y="58" fill="var(--muted)" font-size="10">load · shift · latch</text>
+            <text x="278" y="132" font-weight="600">Shift register</text><text x="278" y="148" fill="var(--muted)" font-size="10">serial out</text>
+            <text x="82" y="132" font-weight="600">Latch</text><text x="82" y="148" fill="var(--muted)" font-size="10">update all at once</text>
+          </g>
+          <g stroke="var(--mask)" stroke-width="1.8" fill="none">
+            <path class="flow" d="M152 45 H206" marker-end="url(#ah)"/>
+            <path class="flow" d="M278 70 V108" marker-end="url(#ah)"/>
+            <path class="flow" d="M208 135 H154" marker-end="url(#ah)"/>
+            <path class="flow" d="M82 160 V194" marker-end="url(#ah)"/>
+          </g>
+          <g>
+            <rect x="12" y="198" width="336" height="40" rx="4" fill="var(--mask-soft)" stroke="var(--mask)" stroke-width="1.5"/>
+            <g fill="var(--mask)">
+              <rect x="24" y="208" width="16" height="20" rx="2"/><rect x="46" y="208" width="16" height="20" rx="2" opacity=".45"/>
+              <rect x="68" y="208" width="16" height="20" rx="2"/><rect x="90" y="208" width="16" height="20" rx="2"/>
+              <rect x="112" y="208" width="16" height="20" rx="2" opacity=".45"/><rect x="134" y="208" width="16" height="20" rx="2" opacity=".45"/>
+              <rect x="156" y="208" width="16" height="20" rx="2"/>
+            </g>
+            <text x="270" y="222" font-size="11" fill="var(--mask)" text-anchor="middle" font-weight="600">RIS elements (0° / 180°)</text>
+          </g>
+        </svg>
+      </div>
+    </article>
+
+    <div class="grid">
+      <article class="card lift">
+        <div class="top"><h3>1x3 Router</h3><span class="kind">RTL + UVM</span></div>
+        <p>A packet router that sends each incoming packet to one of three output FIFOs based on its header address.</p>
+        <ul>
+          <li>Verilog RTL: FSM, synchroniser, register block and three FIFOs, linted with SpyGlass.</li>
+          <li>UVM environment with source and destination agents, virtual sequencer and scoreboard.</li>
+          <li>Tests for each destination and for FIFO soft reset; cross coverage on address, payload size and error.</li>
+        </ul>
+        <div class="tags"><span class="tag">Verilog</span><span class="tag">UVM</span><span class="tag">VCS</span><span class="tag">QuestaSim</span></div>
+        <div class="foot">
+          <div class="meter"><span>Func. coverage</span><span class="bar"><i style="--v:100%"></i></span><b>100%</b></div>
+          <div class="links"><a href="https://github.com/8Sourabh8/Router_1x3_Verification" target="_blank" rel="noopener">Testbench on GitHub ↗</a><a href="https://github.com/8Sourabh8/Router_1x3" target="_blank" rel="noopener">RTL ↗</a><a href="#post-router-uvm">Write-up →</a></div>
+        </div>
+      </article>
+
+      <article class="card lift">
+        <div class="top"><h3>AHB-to-APB Bridge</h3><span class="kind">UVM</span></div>
+        <p>Verification of the bridge that converts pipelined AMBA AHB transfers into two-phase APB transfers for low-speed peripherals.</p>
+        <ul>
+          <li>AHB master agent and APB slave agent with configurable environment.</li>
+          <li>Single and burst transfer sequences driven through a virtual sequencer.</li>
+          <li>Monitors on both buses feed the scoreboard.</li>
+        </ul>
+        <div class="tags"><span class="tag">SystemVerilog</span><span class="tag">UVM</span><span class="tag">AMBA</span><span class="tag">VCS</span></div>
+        <div class="foot">
+          <div class="meter"><span>Agents</span><span class="bar"><i style="--v:100%;background:var(--mask)"></i></span><b>AHB → APB</b></div>
+          <div class="links"><a href="https://github.com/8Sourabh8/AHB_to_APB_Bridge_Verification" target="_blank" rel="noopener">Code on GitHub ↗</a><a href="#post-ahb-apb">Write-up →</a></div>
+        </div>
+      </article>
+
+      <article class="card lift">
+        <div class="top"><h3>UART</h3><span class="kind">UVM</span></div>
+        <p>A UART with baud generator, transmitter, receiver and FIFO, verified end to end.</p>
+        <ul>
+          <li>Checks on transmit and receive paths, baud rate, framing, parity and stop bits.</li>
+          <li>FIFO behaviour and error conditions covered with directed and random tests.</li>
+        </ul>
+        <div class="tags"><span class="tag">SystemVerilog</span><span class="tag">UVM</span><span class="tag">Coverage</span></div>
+        <div class="foot">
+          <div class="meter"><span>Func. coverage</span><span class="bar"><i style="--v:100%"></i></span><b>100%</b></div>
+          <div class="links"><a href="https://github.com/8Sourabh8/UART_Verification" target="_blank" rel="noopener">Code on GitHub ↗</a></div>
+        </div>
+      </article>
+
+      <article class="card lift">
+        <div class="top"><h3>Dual-Port RAM &amp; MOD-10 Counter</h3><span class="kind">SystemVerilog</span></div>
+        <p>Two self-checking SystemVerilog testbenches with constrained-random stimulus and assertions.</p>
+        <ul>
+          <li>Pipelined dual-port RAM: simultaneous read and write on both ports, synchronisation and collision checks.</li>
+          <li>MOD-10 counter: assertions on output sequence, resets and corner cases.</li>
+        </ul>
+        <div class="tags"><span class="tag">SystemVerilog</span><span class="tag">SVA</span><span class="tag">QuestaSim</span><span class="tag">VCS</span></div>
+        <div class="foot">
+          <div class="meter"><span>Func. + code</span><span class="bar"><i style="--v:100%"></i></span><b>100%</b></div>
+          <div class="links"><span style="color:var(--muted);font-size:var(--s-sm)">Maven Silicon coursework</span></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="spec lift">
+      <div class="txt">
+        <div class="tags"><span class="tag">RF &amp; mmWave</span><span class="tag">COMSOL</span><span class="tag">Oct 2026</span></div>
+        <h3>28 GHz inset-fed microstrip patch antenna</h3>
+        <p style="color:var(--muted)">A 5G patch antenna smaller than a fingernail, built and simulated in COMSOL Multiphysics. I studied how feed position, fabrication error and nearby skin change its behaviour, then tuned it for a wider band.</p>
+        <div class="links"><a href="#post-patch-antenna">Read the write-up →</a></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table aria-label="Antenna specification">
+          <tr><td>Frequency</td><td>28 GHz</td></tr>
+          <tr><td>Patch size</td><td>4.2 × 3.5 mm</td></tr>
+          <tr><td>Substrate</td><td>Rogers RT/duroid 5880</td></tr>
+          <tr><td>Feed</td><td>Inset microstrip</td></tr>
+          <tr><td>Bandwidth</td><td>~640 MHz → ~920 MHz after optimisation</td></tr>
+          <tr><td>Studies</td><td>Feed position, fabrication tolerance, skin proximity</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section class="block" id="research">
+  <div class="wrap">
+    <div class="sec-head lift">
+      <div><div class="label">Research</div><h2>Research &amp; talks</h2></div>
+      <p>Before VLSI, I spent my undergraduate years in the Nano-Club at KLS Gogte Institute of Technology, working on sensors and sustainable farming.</p>
+    </div>
+    <div class="research">
+      <article class="paper lift">
+        <span class="label">Sep 2022 – Jan 2023 · Nano-Club, KLS GIT</span>
+        <h3>Electrochemical detection of the herbicide molinate using ZnO nanoparticles</h3>
+        <p>Molinate is widely used in rice fields. We modified a carbon paste electrode with zinc oxide nanoparticles and studied molinate with cyclic voltammetry, then tested the method on spiked soil and water samples.</p>
+        <div class="nums">
+          <div><strong>10 nM</strong><span>detection limit</span></div>
+          <div><strong>91.7–99.5%</strong><span>recovery in real samples</span></div>
+        </div>
+      </article>
+      <article class="paper lift">
+        <span class="label">Dec 2023 – Apr 2024 · UG major project</span>
+        <h3>Frequency-based electro-culture for chemical-free farming</h3>
+        <p>A copper antenna that draws ions from the atmosphere and channels them into the soil. We tested it on turnip plants across water content, chlorophyll (SPAD), height, biomass and leaf area, and saw better growth with no chemical fertilisers.</p>
+        <div class="nums">
+          <div><strong>5</strong><span>growth measures</span></div>
+          <div><strong>1st Prize</strong><span>Project Expo 2024, ECE</span></div>
+        </div>
+      </article>
+    </div>
+    <div class="talks lift">
+      <div class="talk"><span class="when">Feb 2023</span><span>International Conference on Electrochemistry in Industry, Health and Environment (EIHE-2023), BARC, Mumbai</span><span class="type">Poster</span></div>
+      <div class="talk"><span class="when">Mar 2023</span><span>International Conference on Advances in Materials and Chemistry (ASMC-2023)</span><span class="type">Oral talk</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- WRITING -->
+<section class="block" id="writing">
+  <div class="wrap">
+    <div class="sec-head lift">
+      <div><div class="label">Writing</div><h2>Technical write-ups</h2></div>
+      <p>Short write-ups on how I designed and verified each project, and what I would do next.</p>
+    </div>
+    <div class="posts lift" id="postList"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="block" id="about">
+  <div class="wrap">
+    <div class="sec-head lift">
+      <div><div class="label">About</div><h2>Education &amp; experience</h2></div>
+      <p>Diploma to B.E. to a year of full-time VLSI training, now an M.Tech at NITK where wireless meets silicon.</p>
+    </div>
+    <div class="timeline lift">
+      <div class="tl now"><span class="when">Aug 2026 – now</span><span class="node"><i></i></span><div class="what"><h3>M.Tech, Communication Engineering and Networks</h3><p>National Institute of Technology Karnataka, Surathkal</p></div></div>
+      <div class="tl"><span class="when">Jul 2024 – May 2026</span><span class="node"><i></i></span><div class="what"><h3>Advanced VLSI Design and Verification course</h3><p>Maven Silicon, Bengaluru · RTL design, SystemVerilog, UVM, SVA, coverage</p></div></div>
+      <div class="tl"><span class="when">Jan – Mar 2024</span><span class="node"><i></i></span><div class="what"><h3>Intern, Amsa Embedded Solutions</h3><p>Hubli · IoT health monitor on ESP8266 with ThingSpeak, PCB design, UART and I2C debugging</p></div></div>
+      <div class="tl"><span class="when">2021 – 2024</span><span class="node"><i></i></span><div class="what"><h3>B.E., Electronics and Communication · CGPA 7.40</h3><p>KLS Gogte Institute of Technology, Belagavi</p></div></div>
+      <div class="tl"><span class="when">2018 – 2021</span><span class="node"><i></i></span><div class="what"><h3>Diploma, Electronics and Communication · 80%</h3><p>KLS's Shri Vasantrao Potdar Polytechnic, Belagavi</p></div></div>
+    </div>
+
+    <div class="skills lift" style="margin-top:44px">
+      <div class="skill"><h3>Verification</h3><ul><li>SystemVerilog</li><li>UVM</li><li>Assertions (SVA)</li><li>Constrained-random</li><li>Functional &amp; code coverage</li></ul></div>
+      <div class="skill"><h3>Design</h3><ul><li>Verilog RTL</li><li>FSMs, FIFOs, pipelining</li><li>Linting &amp; synthesis</li><li>FPGA implementation</li><li>AMBA AHB/APB, UART, I2C</li></ul></div>
+      <div class="skill"><h3>Tools</h3><ul><li>Synopsys VCS, SpyGlass</li><li>Design Compiler</li><li>QuestaSim</li><li>Vivado, Xilinx ISE</li><li>Cadence Virtuoso, LTSpice</li></ul></div>
+      <div class="skill"><h3>Scripting &amp; RF</h3><ul><li>Perl, Python, C</li><li>Makefile, Linux shell</li><li>MATLAB</li><li>COMSOL Multiphysics</li><li>Altium, DipTrace</li></ul></div>
+    </div>
+
+    <div class="awards lift">
+      <div class="award"><span class="glyph">1st</span><p>Best Innovative Project<span>Maven Silicon</span></p></div>
+      <div class="award"><span class="glyph">1st</span><p>Project Expo 2024, innovative category<span>ECE, KLS Gogte Institute of Technology</span></p></div>
+      <div class="award"><span class="glyph">CERT</span><p>Joy of Computing Using Python (NPTEL) · Linguaskill B2 (Cambridge)<span>Jul 2023 · Jun 2022</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div>
+      <div class="label" style="color:color-mix(in srgb, var(--paper) 60%, var(--ink))">Contact</div>
+      <h2 style="margin-top:12px">Get in touch</h2>
+      <p>I am open to ASIC design and verification roles and internships. Email or LinkedIn is the best way to reach me.</p>
+    </div>
+    <div class="rows">
+      <div class="crow"><div class="left"><span class="k">Email</span><a class="v" id="email" href="mailto:joshisourabh1000@gmail.com">joshisourabh1000@gmail.com</a></div><button class="copy" type="button" id="copyEmail">Copy</button></div>
+      <div class="crow"><div class="left"><span class="k">LinkedIn</span><a class="v" href="https://www.linkedin.com/in/sourabh-joshi-60a268208/" target="_blank" rel="noopener">linkedin.com/in/sourabh-joshi-60a268208</a></div></div>
+      <div class="crow"><div class="left"><span class="k">GitHub</span><a class="v" href="https://github.com/8Sourabh8" target="_blank" rel="noopener">github.com/8Sourabh8</a></div></div>
+    </div>
+  </div>
+</section>
+<footer><div class="wrap"><span>© 2026 Sourabh Joshi</span><span>Surathkal, Karnataka, India</span></div></footer>
+</div>
+
+<!-- ======================= ARTICLE VIEW ======================= -->
+<div id="reader" hidden>
+  <nav class="nav" aria-label="Article">
+    <div class="wrap">
+      <a class="mark" href="#writing" aria-label="Back to Sourabh Joshi home"><span class="chip-ic">SJ</span>Sourabh Joshi</a>
+      <a class="btn resume-link" href="Sourabh_Joshi_Resume.pdf" target="_blank" rel="noopener" style="margin-left:auto">Résumé</a>
+    </div>
+  </nav>
+  <main class="article"><div class="wrap" id="articleBody"></div></main>
+  <footer><div class="wrap"><span>© 2026 Sourabh Joshi</span><a href="#writing" style="color:inherit">All writing</a></div></footer>
+</div>
+
+<script>
+/* ---------- posts ---------- */
+const POSTS = [
+{
+  id: "post-ris-controller",
+  title: "Steering 28 GHz around a building, and the RTL that makes it possible",
+  dek: "A Reconfigurable Intelligent Surface only works if every element gets the right phase in time. This is how I designed and verified the controller that sets them.",
+  topic: "RTL · FPGA · mmWave", mins: 5, date: "Oct 2026",
+  html: `
+<p>At 28 GHz, signals behave more like light than like the radio we are used to. A single building can cut a user off completely. One answer from 6G research is the <strong>Reconfigurable Intelligent Surface (RIS)</strong>: a flat panel of small switchable reflectors. Give each element the right phase and the panel bends the beam around the obstacle, with no extra base station.</p>
+<p>This was a team term project in my M.Tech MIMO Communication Systems course. I wanted it to sit exactly where I want to work: between wireless systems and digital hardware.</p>
+<h2>The RF side</h2>
+<p>I first reproduced an IEEE paper on RIS phase control in MATLAB. Real elements cannot take any phase; they switch between a few states. The simulation matched the theory for that quantisation loss:</p>
+<div class="tbl"><table><thead><tr><th>Phase control</th><th>Loss vs ideal</th></tr></thead><tbody><tr><td>1-bit (0° / 180°)</td><td>3.6 dB</td></tr><tr><td>2-bit (4 states)</td><td>0.85 dB</td></tr></tbody></table></div>
+<p>With the surface in place, coverage behind a building went from 8.8% to 100%, and 2×2 MIMO capacity rose about three times.</p>
+<h2>The question papers skip</h2>
+<p>Most papers assume the RIS phases are just set. Someone has to set them, quickly and reliably, for every element on every beam change. So I designed that hardware.</p>
+<ol>
+<li><strong>Codebook ROM</strong> stores the phase bits for each beam direction.</li>
+<li><strong>Control FSM</strong> sequences the load and shift steps when a new beam is requested.</li>
+<li><strong>Serial shift register</strong> clocks the phase bits out to the elements.</li>
+<li><strong>Latch</strong> applies all elements at once, so the surface never shows a half-updated pattern.</li>
+</ol>
+<p class="callout">The latch matters. Without it the beam would sweep through wrong patterns while bits are still shifting in.</p>
+<h2>Verification and results</h2>
+<p>I verified the controller in Vivado with a testbench; all 18 tests pass. On an Artix-7 FPGA the design uses 157 LUTs and 147 flip-flops and meets timing at 100 MHz.</p>
+<p>One full beam update takes 1.31 µs. At 120 km/h the channel changes about 100 times more slowly than that, so the controller is never the bottleneck.</p>
+<h2>What I would add next</h2>
+<ul>
+<li>SystemVerilog assertions on the FSM: no shift while idle, and the latch pulses exactly once per update.</li>
+<li>A formal check that every reachable state returns to idle, so the controller can never hang.</li>
+<li>A wider codebook and a parallel load option for larger surfaces.</li>
+</ul>`
+},
+{
+  id: "post-router-uvm",
+  title: "Verifying a 1x3 router in UVM: building the coverage plan first",
+  dek: "How I structured the UVM environment for a packet router, and why the coverage model drove the tests rather than the other way round.",
+  topic: "UVM · Coverage", mins: 4, date: "Oct 2026",
+  html: `
+<p>The 1x3 router is a classic verification project, which is exactly why it is useful: the design is small enough to understand fully, so every gap in the testbench is your own fault. I designed the RTL in Verilog and then built a UVM environment to verify it during my Maven Silicon course.</p>
+<h2>The design</h2>
+<p>A packet arrives on one input port. The low two bits of the header byte select a destination, 0, 1 or 2. The upper six bits give the payload length. The router stores the packet in that destination's FIFO and raises a valid signal for the receiver. Inside are a control FSM, a synchroniser, a register block for header and parity, and three FIFOs. I linted the RTL with SpyGlass before verification.</p>
+<h2>The environment</h2>
+<ul>
+<li><strong>Source agent</strong> drives packets with constrained-random headers and payloads.</li>
+<li><strong>Destination agents</strong>, one per output, read packets back with a configurable delay.</li>
+<li><strong>Virtual sequencer</strong> coordinates the source and destination sequences for each test.</li>
+<li><strong>Scoreboard</strong> receives transactions from both sides through analysis FIFOs.</li>
+</ul>
+<h2>Coverage plan</h2>
+<p>The functional coverage model has four parts:</p>
+<div class="tbl"><table><thead><tr><th>Coverpoint</th><th>Bins</th></tr></thead><tbody>
+<tr><td>Destination address</td><td>0, 1, 2</td></tr>
+<tr><td>Payload length</td><td>small 1–14 B, medium 15–40 B, large 41–63 B</td></tr>
+<tr><td>Error (bad parity)</td><td>yes / no</td></tr>
+<tr><td>Read delay at destination</td><td>31–40 cycles, which triggers FIFO soft reset</td></tr>
+</tbody></table></div>
+<p>The source side crosses address, payload size and error, so every destination sees every packet size with and without errors. The destination side crosses address with read delay, which forces the soft-reset path on every output.</p>
+<h2>Tests</h2>
+<p>From one base test I extended a test per destination and a soft-reset test. Running all of them as a regression through a Makefile on VCS and QuestaSim, then merging coverage, reached 100% functional coverage.</p>
+<p>A simplified version of the source-side covergroup:</p>
+<pre><code><span class="kw">covergroup</span> src_cov;
+  SRC_ADDR:    <span class="kw">coverpoint</span> header[1:0] { <span class="kw">bins</span> addr[] = {0, 1, 2}; }
+  SRC_PAYLOAD: <span class="kw">coverpoint</span> header[7:2] {
+    <span class="kw">bins</span> small  = {[1:14]};
+    <span class="kw">bins</span> medium = {[15:40]};
+    <span class="kw">bins</span> large  = {[41:63]};
+  }
+  ERROR:       <span class="kw">coverpoint</span> error;
+  SRC_CROSS:   <span class="kw">cross</span> SRC_ADDR, SRC_PAYLOAD, ERROR;
+<span class="kw">endgroup</span></code></pre>
+<h2>Why the crosses matter</h2>
+<p>Coverage on single signals can reach 100% while whole combinations go untested. Crossing address with payload size and error, and address with read delay, makes the report show whether every destination really saw every case, including the soft-reset path.</p>`
+},
+{
+  id: "post-ahb-apb",
+  title: "AHB to APB: bridging a pipelined bus to a simple one, and checking it with assertions",
+  dek: "How the bridge converts AHB transfers into APB's two-phase protocol, how I built the UVM testbench, and the SVA properties I would use to check it formally.",
+  topic: "AMBA · UVM · SVA", mins: 5, date: "Oct 2026",
+  html: `
+<p>Inside a typical SoC, fast blocks talk over AMBA AHB and slow peripherals such as timers and UARTs sit on APB. The bridge between them is small, but it has to translate between two very different protocols without losing or reordering a single transfer.</p>
+<h2>Two protocols, two rhythms</h2>
+<ul>
+<li><strong>AHB</strong> is pipelined. The address phase of one transfer overlaps the data phase of the previous one, and bursts keep the bus busy.</li>
+<li><strong>APB</strong> is simple. Every transfer takes a <em>setup</em> phase (PSEL high, PENABLE low) followed by an <em>access</em> phase (PSEL and PENABLE high).</li>
+</ul>
+<p>The bridge accepts AHB transfers, holds the AHB master with HREADY when APB needs more time, and replays each transfer as a correct APB setup and access sequence.</p>
+<h2>The UVM testbench</h2>
+<ul>
+<li>An <strong>AHB master agent</strong> drives single and burst transfers from sequences.</li>
+<li>An <strong>APB slave agent</strong> responds like a peripheral.</li>
+<li>A <strong>virtual sequencer</strong> runs both from one test, with environment settings in a config object.</li>
+<li><strong>Monitors</strong> on both buses send every observed transfer to the scoreboard.</li>
+</ul>
+<h2>Checking the protocol with assertions</h2>
+<p>A scoreboard compares data. Protocol rules are better written as SystemVerilog Assertions, because they are checked on every clock and can also be proven with a formal tool. These are the APB properties I plan to add to the bridge:</p>
+<pre><code><span class="cm">// Setup phase is always followed by the access phase</span>
+<span class="kw">property</span> p_setup_then_access;
+  @(<span class="kw">posedge</span> pclk) <span class="kw">disable iff</span> (!presetn)
+    (psel && !penable) |=> (psel && penable);
+<span class="kw">endproperty</span>
+
+<span class="cm">// Address, direction and write data hold steady until the transfer completes</span>
+<span class="kw">property</span> p_stable_in_access;
+  @(<span class="kw">posedge</span> pclk) <span class="kw">disable iff</span> (!presetn)
+    (psel && penable && !pready) |=> $stable({paddr, pwrite, pwdata});
+<span class="kw">endproperty</span>
+
+<span class="cm">// PENABLE is never high without PSEL</span>
+<span class="kw">property</span> p_enable_needs_sel;
+  @(<span class="kw">posedge</span> pclk) <span class="kw">disable iff</span> (!presetn) penable |-> psel;
+<span class="kw">endproperty</span>
+
+a_setup_then_access: <span class="kw">assert property</span> (p_setup_then_access);
+a_stable_in_access:  <span class="kw">assert property</span> (p_stable_in_access);
+a_enable_needs_sel:  <span class="kw">assert property</span> (p_enable_needs_sel);</code></pre>
+<p class="callout">In simulation, an assertion is only checked on the sequences the tests happen to run. A formal tool asks a stronger question: can any input sequence at all break it?</p>
+<h2>Next steps</h2>
+<ul>
+<li>Bind the assertions to the bridge so they run in every UVM test.</li>
+<li>Add cover properties for back-to-back transfers and wait states, so I can see those cases actually happen.</li>
+<li>Run the same properties through a formal tool and compare what it finds with simulation.</li>
+</ul>`
+},
+{
+  id: "post-patch-antenna",
+  title: "A 28 GHz patch antenna smaller than a fingernail",
+  dek: "Designing an inset-fed microstrip patch for 5G in COMSOL, and what feed position, fabrication error and nearby skin do to it.",
+  topic: "RF · mmWave", mins: 3, date: "Oct 2026",
+  html: `
+<p>This was my first real step into RF after a year of digital verification. The target was a patch antenna for 28 GHz, one of the main 5G millimetre-wave bands, built and simulated in COMSOL Multiphysics as part of my Millimeter Wave course at NITK.</p>
+<h2>The design</h2>
+<div class="tbl"><table><tbody>
+<tr><td>Patch</td><td>4.2 × 3.5 mm</td></tr>
+<tr><td>Substrate</td><td>Rogers RT/duroid 5880</td></tr>
+<tr><td>Feed</td><td>Inset microstrip line</td></tr>
+</tbody></table></div>
+<p>An inset feed cuts a notch into the patch so the feed line meets it at a point where the input impedance matches the line. The depth of that notch is the main tuning knob.</p>
+<h2>What I studied</h2>
+<ul>
+<li><strong>Feed position.</strong> Moving the inset changes the match and so the usable band.</li>
+<li><strong>Fabrication error.</strong> At this size, small etching errors are a real fraction of the patch, so I checked how much they shift the response.</li>
+<li><strong>Nearby skin.</strong> A phone antenna sits near a hand or head, so I modelled skin close to the patch and looked at the detuning.</li>
+</ul>
+<h2>Result</h2>
+<p>After optimisation the bandwidth widened from about 640 MHz to about 920 MHz.</p>
+`
+}
+];
+
+const list = document.getElementById("postList");
+list.innerHTML = POSTS.map(p => `
+  <a class="post-link" href="#${p.id}">
+    <span class="meta">${p.date} · ${p.mins} min</span>
+    <span><h3>${p.title}</h3><p>${p.dek}</p><span class="tags" style="margin-top:10px">${p.topic.split(" · ").map(t => `<span class="tag">${t}</span>`).join("")}</span></span>
+    <span class="arrow">→</span>
+  </a>`).join("");
+
+const home = document.getElementById("home"), reader = document.getElementById("reader"), body = document.getElementById("articleBody");
+function route() {
+  const id = location.hash.slice(1);
+  const i = POSTS.findIndex(p => p.id === id);
+  if (i >= 0) {
+    const p = POSTS[i], n = POSTS[(i + 1) % POSTS.length];
+    body.innerHTML = `
+      <a class="back" href="#writing">← All writing</a>
+      <header><span class="label">${p.date} · ${p.mins} min read · ${p.topic}</span><h1>${p.title}</h1><p class="dek">${p.dek}</p></header>
+      <div class="prose">${p.html}</div>
+      <div class="next"><a class="back" href="#writing">← All writing</a><a class="back" href="#${n.id}">Next: ${n.title} →</a></div>`;
+    home.hidden = true; reader.hidden = false;
+    document.title = p.title + " | Sourabh Joshi";
+    window.scrollTo(0, 0);
+  } else {
+    const wasReader = !reader.hidden;
+    reader.hidden = true; home.hidden = false;
+    document.title = "Sourabh Joshi";
+    if (wasReader && id) { const t = document.getElementById(id); if (t) t.scrollIntoView(); }
+  }
+}
+window.addEventListener("hashchange", route);
+route();
+
+/* ---------- résumé link: only offered where the PDF can open ---------- */
+(function () {
+  const inArtifact = /claude|anthropic/.test(location.hostname) || location.hostname === "";
+  if (inArtifact) document.querySelectorAll(".resume-link").forEach(a => { a.href = "#contact"; a.removeAttribute("target"); a.title = "Résumé PDF opens on the published site"; });
+})();
+
+/* ---------- copy email ---------- */
+document.getElementById("copyEmail").addEventListener("click", e => {
+  const btn = e.currentTarget, text = "joshisourabh1000@gmail.com";
+  const done = () => { btn.textContent = "Copied"; setTimeout(() => btn.textContent = "Copy", 1600); };
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById("email")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selected"; };
+  try { navigator.clipboard.writeText(text).then(done, fallback); } catch (_) { fallback(); }
+});
+
+/* ---------- reveal on scroll (transform only; content always visible) ---------- */
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const lifts = document.querySelectorAll(".lift");
+if ("IntersectionObserver" in window && !reduce) {
+  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("seen"); io.unobserve(en.target); } }), { rootMargin: "0px 0px -8% 0px" });
+  lifts.forEach(el => io.observe(el));
+} else lifts.forEach(el => el.classList.add("seen"));
+
+/* active nav link */
+const navLinks = [...document.querySelectorAll(".nav ul a")];
+if ("IntersectionObserver" in window) {
+  const so = new IntersectionObserver(es => es.forEach(en => {
+    if (en.isIntersecting) navLinks.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
+  }), { rootMargin: "-45% 0px -50% 0px" });
+  ["work", "research", "writing", "about", "contact"].forEach(id => { const s = document.getElementById(id); if (s) so.observe(s); });
+}
+
+/* ---------- logic analyzer ---------- */
+(function () {
+  const cv = document.getElementById("wave"), ctx = cv.getContext("2d"), tread = document.getElementById("tread");
+  const SIG = ["clk", "rst_n", "pkt_valid", "data[7:0]", "vld_out_0", "read_enb_0", "SVA"];
+  const HALF = 9, CYC = HALF * 2, LOOP = 48, NS = 10; // 10 ns per cycle
+  const LABEL = 92, ROW = 28, TOP = 22;
+  const DATA = [0x2D, 0xA1, 0x3C, 0x77, 0x09, 0xE4, 0x5B, 0x12, 0xC8, 0x6F, 0x41, 0x8E, 0x30];
+  let col = {}, W = 0, H = 0, off = 0, mx = -1, running = true, last = 0;
+
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    ["--ink", "--muted", "--rule", "--mask", "--copper", "--pass", "--panel", "--mask-soft"].forEach(k => col[k] = s.getPropertyValue(k).trim());
+  }
+  function size() {
+    const r = cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
+    W = r.width; H = r.height; cv.width = Math.round(W * d); cv.height = Math.round(H * d); ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  const cyc = c => ((c % LOOP) + LOOP) % LOOP;
+  const rst = c => cyc(c) > 1;
+  const pv = c => { const k = cyc(c); return (k >= 4 && k <= 16) || (k >= 28 && k <= 34); };
+  const vo = c => { const k = cyc(c); return (k >= 9 && k <= 24) || (k >= 33 && k <= 42); };
+  const rd = c => { const k = cyc(c); return (k >= 13 && k <= 25) || (k >= 37 && k <= 43); };
+  const dat = c => { const k = cyc(c); if (k >= 4 && k <= 16) return DATA[k - 4]; if (k >= 28 && k <= 34) return DATA[(k - 28 + 5) % DATA.length]; return null; };
+  const sva = c => { const k = cyc(c); return k === 17 || k === 35; };
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = col["--panel"]; ctx.fillRect(0, 0, W, H);
+    const x0 = LABEL, span = W - x0;
+    const c0 = Math.floor(off / CYC) - 1, c1 = c0 + Math.ceil(span / CYC) + 3;
+    const X = c => x0 + c * CYC - off;
+    // grid + ruler
+    ctx.font = "500 9.5px 'IBM Plex Mono', monospace"; ctx.textBaseline = "middle";
+    for (let c = c0; c <= c1; c++) {
+      const x = X(c); if (x < x0) continue;
+      ctx.strokeStyle = col["--rule"]; ctx.globalAlpha = c % 5 === 0 ? .9 : .35; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x + .5, TOP - 6); ctx.lineTo(x + .5, H); ctx.stroke(); ctx.globalAlpha = 1;
+      if (c % 5 === 0) { ctx.fillStyle = col["--muted"]; ctx.fillText((c * NS) + "", x + 3, 9); }
+    }
+    // labels
+    ctx.fillStyle = col["--panel"]; ctx.fillRect(0, 0, x0 - 6, H);
+    ctx.font = "500 11px 'IBM Plex Mono', monospace";
+    SIG.forEach((s, i) => { ctx.fillStyle = s === "SVA" ? col["--pass"] : col["--muted"]; ctx.fillText(s, 12, TOP + i * ROW + ROW / 2); });
+    ctx.strokeStyle = col["--rule"]; ctx.beginPath(); ctx.moveTo(x0 - 6.5, 0); ctx.lineTo(x0 - 6.5, H); ctx.stroke();
+
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 4, 0, W, H); ctx.clip();
+    const yHi = i => TOP + i * ROW + 6, yLo = i => TOP + i * ROW + ROW - 6;
+    function digital(i, fn, color) {
+      ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.beginPath();
+      let prev = null;
+      for (let c = c0; c <= c1; c++) {
+        const v = fn(c), x = X(c), y = v ? yHi(i) : yLo(i);
+        if (prev === null) ctx.moveTo(x, y); else if (prev !== v) ctx.lineTo(x, y);
+        ctx.lineTo(x + CYC, y); prev = v;
+      }
+      ctx.stroke();
+    }
+    // clock
+    ctx.strokeStyle = col["--ink"]; ctx.lineWidth = 1.4; ctx.beginPath();
+    for (let c = c0; c <= c1; c++) { const x = X(c); ctx.moveTo(x, yLo(0)); ctx.lineTo(x, yHi(0)); ctx.lineTo(x + HALF, yHi(0)); ctx.lineTo(x + HALF, yLo(0)); ctx.lineTo(x + CYC, yLo(0)); }
+    ctx.stroke();
+    digital(1, rst, col["--ink"]);
+    digital(2, pv, col["--copper"]);
+    // bus
+    const by = TOP + 3 * ROW + ROW / 2, bh = (ROW - 12) / 2;
+    for (let c = c0; c <= c1; c++) {
+      const v = dat(c), x = X(c), e = 3;
+      ctx.lineWidth = 1.3;
+      if (v === null) { ctx.strokeStyle = col["--muted"]; ctx.globalAlpha = .55; ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x + CYC, by); ctx.stroke(); ctx.globalAlpha = 1; continue; }
+      ctx.fillStyle = col["--mask-soft"]; ctx.strokeStyle = col["--mask"];
+      ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x + e, by - bh); ctx.lineTo(x + CYC - e, by - bh); ctx.lineTo(x + CYC, by); ctx.lineTo(x + CYC - e, by + bh); ctx.lineTo(x + e, by + bh); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = col["--mask"]; ctx.font = "600 8.5px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+      ctx.fillText(v.toString(16).toUpperCase().padStart(2, "0"), x + CYC / 2, by + .5); ctx.textAlign = "left";
+    }
+    digital(4, vo, col["--mask"]);
+    digital(5, rd, col["--ink"]);
+    // SVA pass markers
+    for (let c = c0; c <= c1; c++) if (sva(c)) {
+      const x = X(c) + HALF, y = TOP + 6 * ROW + ROW / 2;
+      ctx.fillStyle = col["--pass"]; ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = col["--panel"]; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 2.5, y); ctx.lineTo(x - .5, y + 2); ctx.lineTo(x + 2.8, y - 2.2); ctx.stroke();
+    }
+    // cursor
+    if (mx >= x0) {
+      ctx.strokeStyle = col["--copper"]; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(mx + .5, TOP - 6); ctx.lineTo(mx + .5, H); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.restore();
+    const tx = mx >= x0 ? mx : W - 1;
+    tread.textContent = "t = " + Math.max(0, Math.round(((tx - x0 + off) / CYC) * NS)) + " ns";
+  }
+  function frame(ts) {
+    if (!last) last = ts; const dt = Math.min(ts - last, 50); last = ts;
+    if (running) { off += dt * 0.016; draw(); }
+    requestAnimationFrame(frame);
+  }
+  readColors(); size(); draw();
+  addEventListener("resize", () => { size(); draw(); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
+  new MutationObserver(() => { readColors(); draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  cv.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; if (!running) draw(); });
+  cv.addEventListener("pointerleave", () => { mx = -1; if (!running) draw(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if ("IntersectionObserver" in window) new IntersectionObserver(es => { running = es[0].isIntersecting && !home.hidden; }).observe(cv);
+    requestAnimationFrame(frame);
+  } else running = false;
+})();
+</script>
+</body>
+</html>
