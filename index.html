@@ -43,16 +43,11 @@
   --wrap: 1120px;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root {
     --paper: #0c121d; --panel: #121a28; --ink: #e5eaf1; --muted: #98a3b5; --rule: #232e42;
     --mask: #82aae6; --copper: #d4a85c; --pass: #5cc092; --mask-soft: #18233a; --grid: transparent;
     color-scheme: dark;
   }
-}
-:root[data-theme="dark"] {
-  --paper: #0c121d; --panel: #121a28; --ink: #e5eaf1; --muted: #98a3b5; --rule: #232e42;
-  --mask: #82aae6; --copper: #d4a85c; --pass: #5cc092; --mask-soft: #18233a; --grid: transparent;
-  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -965,7 +960,6 @@ if ("IntersectionObserver" in window) {
   readColors(); size(); draw();
   addEventListener("resize", () => { size(); draw(); });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
-  new MutationObserver(() => { readColors(); draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   cv.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; if (!running) draw(); });
   cv.addEventListener("pointerleave", () => { mx = -1; if (!running) draw(); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
