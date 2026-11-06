@@ -401,7 +401,7 @@ img { max-width: 100%; }
 
 <div class="readouts">
   <div class="wrap">
-    <div class="ro"><strong>100%</strong><span>functional coverage on 4 UVM / SystemVerilog testbenches</span></div>
+    <div class="ro"><strong>4</strong><span>UVM / SystemVerilog testbenches with self-checking scoreboards</span></div>
     <div class="ro"><strong>100 MHz</strong><span>timing met on Artix-7 for my RIS phase controller</span></div>
     <div class="ro"><strong>2 first prizes</strong><span>Project Expo 2024 and Best Innovative Project, Maven Silicon</span></div>
     <div class="ro"><strong>2 talks</strong><span>at international conferences, incl. EIHE-2023 at BARC</span></div>
@@ -494,7 +494,7 @@ img { max-width: 100%; }
         <ul>
           <li>AHB master agent and APB slave agent with configurable environment.</li>
           <li>Single and burst transfer sequences driven through a virtual sequencer.</li>
-          <li>Monitors on both buses feed the scoreboard.</li>
+          <li>Scoreboard checks address, slave select and byte-lane data for every transfer.</li>
         </ul>
         <div class="tags"><span class="tag">SystemVerilog</span><span class="tag">UVM</span><span class="tag">AMBA</span><span class="tag">VCS</span></div>
         <div class="foot">
@@ -505,14 +505,14 @@ img { max-width: 100%; }
 
       <article class="card lift">
         <div class="top"><h3>UART</h3><span class="kind">UVM</span></div>
-        <p>A UART with baud generator, transmitter, receiver and FIFO, verified end to end.</p>
+        <p>A UART with baud generator, 16-deep transmit FIFO, transmitter and receiver, verified in loopback.</p>
         <ul>
-          <li>Checks on transmit and receive paths, baud rate, framing, parity and stop bits.</li>
-          <li>FIFO behaviour and error conditions covered with directed and random tests.</li>
+          <li>Scoreboard checks that every byte leaves the receiver unchanged and in order.</li>
+          <li>Random, corner-pattern (00, FF, 55, AA) and FIFO-full tests at a programmed baud rate.</li>
         </ul>
         <div class="tags"><span class="tag">SystemVerilog</span><span class="tag">UVM</span><span class="tag">Coverage</span></div>
         <div class="foot">
-          <div class="meter"><span>Func. coverage</span><span class="bar"><i style="--v:100%"></i></span><b>100%</b></div>
+          <div class="meter"><span>Tests</span><span class="bar"><i style="--v:100%"></i></span><b>4</b></div>
           <div class="links"><a href="https://github.com/8Sourabh8/UART_Verification" target="_blank" rel="noopener">Code on GitHub ↗</a></div>
         </div>
       </article>
@@ -840,12 +840,6 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 route();
-
-/* ---------- résumé link: only offered where the PDF can open ---------- */
-(function () {
-  const inArtifact = /claude|anthropic/.test(location.hostname) || location.hostname === "";
-  if (inArtifact) document.querySelectorAll(".resume-link").forEach(a => { a.href = "#contact"; a.removeAttribute("target"); a.title = "Résumé PDF opens on the published site"; });
-})();
 
 /* ---------- copy email ---------- */
 document.getElementById("copyEmail").addEventListener("click", e => {
